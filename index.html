@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Age on Other Worlds</title>
+<style>
+:root{--bg:#1f1e1e;--panel:#282828;--ink:#828282;--dim:#444445;--gold:#383837;--line:#2c3566}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.5}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px 40px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{margin:0 0 6px;font-size:clamp(1.8rem,5vw,2.8rem);letter-spacing:.01em}
+.who{color:var(--dim);font-size:1rem}
+.who b{color:var(--gold);font-weight:normal}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--panel);padding:16px;border-radius:10px;margin-bottom:20px}
+label{display:flex;flex-direction:column;font-size:.9rem;color:var(--dim);gap:4px}
+input,select,button{font:inherit;padding:9px 12px;border-radius:6px;border:1px solid var(--line);background:#0e1330;color:var(--ink)}
+button{background:var(--gold);color:#1b1500;border-color:var(--gold);cursor:pointer;font-weight:bold}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#summary{margin:0 0 16px;color:var(--dim)}
+#summary strong{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.planet{border-radius:50%;margin:0 auto 10px;box-shadow:inset -8px -8px 14px rgba(0,0,0,.45)}
+.card h2{margin:0;font-size:1.15rem}
+.year{font-size:.8rem;color:var(--dim);margin-bottom:8px}
+.age{font-size:1.7rem;color:var(--gold)}
+.age small{display:block;font-size:.75rem;color:var(--dim)}
+.err{color:#ff9d8a;min-height:1.4em;margin:0 0 8px}
+footer{margin-top:24px;color:var(--dim);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Your Age on Other Worlds</h1>
+  <!-- EDIT THE LINE BELOW WITH YOUR DETAILS -->
+  <div class="who">Name: <b>alexandher m ramos </b> &nbsp;|&nbsp; Course: <b>information technology</b> &nbsp;|&nbsp; Section: <b>bsit 1-b</b></div>
+</header>
+
+<div class="controls">
+  <label>Date of birth<input type="date" id="dob"></label>
+  <label>Planet
+    <select id="pick"><option value="all">All planets</option></select>
+  </label>
+  <button id="go" type="button">Calculate age</button>
+</div>
+<p class="err" id="err" role="alert"></p>
+<p id="summary">Enter your birthday to see how old you are on each planet.</p>
+<div class="grid" id="grid"></div>
+
+<footer>Age = Earth days lived &divide; length of the planet's year in Earth days. Pluto is a dwarf planet (reclassified in 2006).</footer>
+</div>
+
+<script>
+var P=[
+{n:"Mercury",d:88,c:"#b5b0a8",s:34},
+{n:"Venus",d:225,c:"#e3b878",s:54},
+{n:"Earth",d:365,c:"#4a8fd8",s:56},
+{n:"Mars",d:687,c:"#c9573a",s:42},
+{n:"Jupiter",d:4380,c:"#d4a373",s:92},
+{n:"Saturn",d:10767.5,c:"#e6d198",s:82},
+{n:"Uranus",d:30660,c:"#8fdde0",s:66},
+{n:"Neptune",d:60152,c:"#4468d8",s:64},
+{n:"Pluto",d:90520,c:"#c2a890",s:26}
+];
+var grid=document.getElementById("grid"),pick=document.getElementById("pick"),
+dob=document.getElementById("dob"),err=document.getElementById("err"),sum=document.getElementById("summary");
+dob.max=new Date().toISOString().slice(0,10);
+
+P.forEach(function(p,i){
+  var o=document.createElement("option");o.value=i;o.textContent=p.n;pick.appendChild(o);
+  var c=document.createElement("div");c.className="card";c.id="c"+i;
+  c.innerHTML='<div class="planet" style="width:'+p.s+'px;height:'+p.s+'px;background:'+p.c+'"></div>'+
+  '<h2>'+p.n+'</h2><div class="year">1 year = '+p.d.toLocaleString()+' Earth days</div>'+
+  '<div class="age" id="a'+i+'">&mdash;<small>enter birthday</small></div>';
+  grid.appendChild(c);
+});
+
+function calc(){
+  err.textContent="";
+  if(!dob.value){err.textContent="Please enter your date of birth.";return;}
+  var b=new Date(dob.value+"T00:00:00"),now=new Date();
+  var days=(now-b)/86400000;
+  if(days<0){err.textContent="Date of birth can't be in the future.";return;}
+  var sel=pick.value;
+  P.forEach(function(p,i){
+    var age=days/p.d;
+    document.getElementById("a"+i).innerHTML=age.toFixed(2)+"<small>years old</small>";
+    var card=document.getElementById("c"+i);
+    card.style.display=(sel==="all"||sel==String(i))?"":"none";
+    card.className="card"+(sel!=="all"&&sel==String(i)?" sel":"");
+  });
+  sum.innerHTML="You have lived <strong>"+Math.floor(days).toLocaleString()+"</strong> Earth days.";
+  if(sel!=="all"){
+    var p=P[sel];
+    sum.innerHTML+=" On <strong>"+p.n+"</strong> you are <strong>"+(days/p.d).toFixed(2)+"</strong> years old.";
+  }
+}
+document.getElementById("go").addEventListener("click",calc);
+pick.addEventListener("change",function(){
+  if(dob.value)calc();
+  else P.forEach(function(p,i){document.getElementById("c"+i).style.display=(pick.value==="all"||pick.value==String(i))?"":"none";});
+});
+</script>
+</body>
+</html>
